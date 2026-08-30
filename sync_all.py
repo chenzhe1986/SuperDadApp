@@ -97,14 +97,22 @@ def sync_dir(src: Path, dst: Path, transform=None) -> int:
     return n
 
 
-def rewrite_smartkid_static(text: str) -> str:
-    """SmartKid 副本里的 /static/ 资源已搬到 /static/smartkid/，改写绝对路径引用。
+def rewrite_for_allinone(app: str):
+    """生成拷贝副本的文本改写函数（app 为 'smartkid' / 'happynumber'）。
 
-    主规则只处理带前导斜杠的引用（src="/static/..."、'/static/...'），
-    避免误伤其他文字；另有注释里提到的 "static/sounds/" 单独精确替换，
-    让副本里的说明文字也保持正确。"""
-    text = text.replace("/static/", "/static/smartkid/")
-    return text.replace("static/sounds/", "static/smartkid/sounds/")
+    子项目代码进合并工程后有两类"老路径"必须改写，否则运行时静默失效：
+    1. /static/... 静态资源 → /static/<app>/...（资源分桶）；
+    2. '/pages/...' 内部跳转（uni.navigateTo / <navigator url>）→
+       '/<app>/pages/...'（页面在合并工程里注册的路径都带应用前缀），
+       真机实测漏掉这条会导致子应用内部按钮全部"点了没反应"（2026-08）。"""
+    def transform(text: str) -> str:
+        text = text.replace("/static/", f"/static/{app}/")
+        text = text.replace("static/sounds/", f"static/{app}/sounds/")  # 注释文字同步修正
+        text = text.replace("'/pages/", f"'/{app}/pages/")
+        text = text.replace('"/pages/', f'"/{app}/pages/')
+        text = text.replace("`/pages/", f"`/{app}/pages/")  # 模板字符串（happy-range 在用）
+        return text
+    return transform
 
 
 def load_pages(proj_dir: Path) -> dict:
@@ -125,20 +133,22 @@ def merge_sub_pages(sub_pages: dict, prefix: str) -> list:
 
 def sync_smartkid() -> int:
     src = REPO / "SmartKid"
+    t = rewrite_for_allinone("smartkid")
     total = 0
-    total += sync_dir(src / "pages", ALL / "smartkid" / "pages", rewrite_smartkid_static)
+    total += sync_dir(src / "pages", ALL / "smartkid" / "pages", t)
     total += sync_dir(src / "data", ALL / "smartkid" / "data")
-    total += sync_dir(src / "utils", ALL / "smartkid" / "utils", rewrite_smartkid_static)
+    total += sync_dir(src / "utils", ALL / "smartkid" / "utils", t)
     total += sync_dir(src / "static", ALL / "static" / "smartkid")
     shutil.copy2(src / "uni.scss", ALL / "uni.scss")
     print(f"[SmartKid] 页面/题库/工具/静态资源已同步，共 {total} 个文件"
-          f"（/static/ 路径已改写为 /static/smartkid/，uni.scss 已更新）")
+          f"（/static/ 与 /pages/ 路径已改写，uni.scss 已更新）")
     return total
 
 
 def sync_happynumber() -> int:
     src = REPO / "HappyNumber"
-    total = sync_dir(src / "pages", ALL / "happynumber" / "pages")
+    t = rewrite_for_allinone("happynumber")
+    total = sync_dir(src / "pages", ALL / "happynumber" / "pages", t)
     total += sync_dir(src / "styles", ALL / "happynumber" / "styles")
     css = ALL / "happynumber" / "styles" / "child-friendly.css"
     css.write_text(css.read_text(encoding="utf-8") + HN_PAGE_CSS, encoding="utf-8")

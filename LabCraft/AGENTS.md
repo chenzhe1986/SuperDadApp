@@ -60,7 +60,18 @@ README-UniApp.md      安卓打包步骤说明
    - App 为**横屏**（uniapp/manifest.json 的 `app-plus.screenOrientation`）；
      页面进入时还会用 `plus.screen.lockOrientation('landscape')` 动态锁定、
      `onUnload` 恢复竖屏——独立打包时与 manifest 叠加无害；AllInOne（全家桶，
-     manifest 锁竖屏）依赖该动态锁定才能横屏，勿删（见 uniapp/pages/index/index.vue）。
+     manifest 锁竖屏）依赖该动态锁定才能横屏，勿删（见 uniapp/pages/index/index.vue）；
+   - **布局是产品决策，改样式时保持**（2026-08 调整）：
+     元素/物质详情为左右分屏——左侧 3D（约 2/3）、右侧信息栏（约 1/3，宽度
+     `--info-w`），旋转/复位按钮横排放在左 3D 区下方居中；
+     周期表弹窗为 18 列流体网格，宽度自动贴合面板、只允许上下滚动；
+     **`.pt-cell` 的 `min-width: 0` 是关键，勿删**——网格项的自动最小尺寸会把
+     "内容高度经 aspect-ratio 折算出的最小宽"当成 1fr 轨道下限，删掉后 18 列
+     总宽超出面板且横向已禁止滚动，右侧整列显示不出来（真机踩过）；
+     横屏矮视口（App 主形态）下顶栏**悬浮**在 3D 区上方（absolute + 透明背景 +
+     pointer-events 穿透，品牌隐藏、控件靠右），不占用纵向空间；
+     状态栏避让靠 main.js 注入的 `--statusbar-h`（plus API 取真实高度，
+     Android WebView 里 env(safe-area-inset-top) 常为 0，勿删该注入逻辑）。
 7. **相机与入场动画**：`setModel` 先 `fitCamera()`（按 scale=1 算包围球）再缩放到 0.001 播放入场。
    不要把顺序换回去（会导致相机贴脸）。`fitCamera` 内部对 scale 做了归一，改动需保持该行为。
 8. **uniapp 工程文件**：manifest.json / pages.json 被 HBuilderX 可视化编辑器管理，格式有严格约定，

@@ -33,10 +33,12 @@ static/smartkid/           SmartKid 静态资源（音效、二维码等）
 
 脚本行为（可重复执行）：
 1. 清空后重拷 SmartKid 的 `pages/data/utils` 到 `smartkid/`、`static` 到
-   `static/smartkid/`，并把副本里的 `/static/...` 绝对路径改写为
-   `/static/smartkid/...`（静态资源分桶，避免三应用资源冲突）；
-2. 重拷 HappyNumber 的 `pages/styles` 到 `happynumber/`，并给
-   `child-friendly.css` 副本追加 `page` 背景/字体规则（原规则在其 App.vue，
+   `static/smartkid/`，并做两类路径改写：静态资源 `/static/...` →
+   `/static/smartkid/...`（资源分桶）；内部跳转 `'/pages/...`（单引号/双引号/
+   反引号三种形式，含 uni.navigateTo 与 navigator 组件）→ `'/smartkid/pages/...`
+   （不改写会导致子应用内部按钮"点了没反应"且无报错，2026-08 真机踩过）；
+2. 重拷 HappyNumber 的 `pages/styles` 到 `happynumber/`（做同样的跳转路径改写），
+   并给 `child-friendly.css` 副本追加 `page` 背景/字体规则（原规则在其 App.vue，
    合并工程全局 page 固定用 SmartKid 底色，故改为随页面覆盖）；
 3. 调用 `LabCraft/sync_uniapp.py` 后，拷贝网页副本与 web-view 页面；
 4. 从 SmartKid 拷贝 `uni.scss`；

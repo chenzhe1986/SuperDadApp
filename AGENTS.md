@@ -46,6 +46,22 @@ HBuilderX 工程，可单独打包成 APK：
 
 ## 已踩过的坑（复用经验）
 
+- **CSS 网格 + aspect-ratio 的"传递最小尺寸"陷阱**（化学视界周期表踩过）：
+  网格项设置了 `aspect-ratio` 时，其自动最小尺寸会把"内容高度按比例折算出的
+  最小宽度"当作 `1fr` 轨道下限——内容越高格子越宽，列数一多就横向溢出。
+  修复是给网格项显式 `min-width: 0` 并收紧行高；排查手段是对比
+  `scrollWidth` 与 `clientWidth`、再量单元格实际宽度是否远超等分值。
+- **Android WebView 里 `env(safe-area-inset-top)` 常返回 0**，沉浸式页面会顶到
+  状态栏图标下面。App 内（含 uni-app web-view 加载的本地网页，plus 可用）用
+  `plus.navigator.getStatusbarHeight()` 取真实高度注入 CSS 变量做避让，
+  浏览器环境回退 `env()`。化学视界的 `--statusbar-h` 即此实现。
+
+- **子应用内部跳转路径在合并工程会静默失效**：子项目里的
+  `uni.navigateTo({ url: '/pages/...' })`、`<navigator url="/pages/...">`、
+  反引号模板字符串 `` url: `/pages/...` ``，在 AllInOne 里因页面注册路径带
+  应用前缀而找不到目标，表现为"点了没反应"且无报错弹窗。sync_all.py 已统一把
+  三种引号形式的 `'/pages/` 改写为 `'/{app}/pages/`；新增子项目页面无需手改，
+  跑同步即可，但改写只认这三字面量前缀，其余写法（如拼接变量前半段）要自查。
 - **Git Bash（MSYS）下 grep 搜以 `/` 开头的模式会被路径转换吞掉**：如
   `grep "/static/"` 会被改写成 Git 安装目录下的路径，搜索结果静默为空，
   容易误判"代码里没有这种引用"。解决办法：模式不要以 `/` 开头（如搜 `static/`），

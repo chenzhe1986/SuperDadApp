@@ -6,6 +6,9 @@
   --muted: #9aa5c9;
   --accent: #7c8cff;
   --accent2: #37d0c9;
+  /* 左右分屏：右侧信息栏宽度（左 3D 约占 2/3，右信息约占 1/3；
+     竖屏媒体查询里会覆盖为底部卡片布局） */
+  --info-w: min(36vw, 400px);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,6 +27,9 @@ body {
 }
 
 /* ---------- 顶栏 ---------- */
+/* --statusbar-h：由 main.js 在 App 内用 plus API 注入真实状态栏高度
+   （Android WebView 的 env(safe-area-inset-top) 常返回 0，不可靠）；
+   浏览器里该变量不存在，自动回退到 env() */
 .topbar {
   min-height: 56px;
   flex-shrink: 0;
@@ -33,7 +39,7 @@ body {
   flex-wrap: wrap;
   gap: 8px;
   padding: 8px 20px;
-  padding-top: calc(8px + env(safe-area-inset-top));
+  padding-top: calc(8px + var(--statusbar-h, env(safe-area-inset-top, 0px)));
   border-bottom: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(22, 26, 48, 0.95), rgba(10, 12, 26, 0.6));
   backdrop-filter: blur(8px);
@@ -113,11 +119,20 @@ body {
 /* ---------- 3D 舞台 ---------- */
 .stage { flex: 1; position: relative; min-width: 0; min-height: 0; }
 
-#scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* 画布只占左侧区域，右侧留给信息栏（--info-w）；main.js 的 resize()
+   读 clientWidth/Height，布局变化后自动适配渲染尺寸 */
+#scene {
+  position: absolute; top: 0; left: 0;
+  width: calc(100% - var(--info-w)); height: 100%;
+  display: block;
+}
 
+/* 旋转/复位按钮：放在左侧 3D 区域下方居中（横排） */
 .stage-controls {
-  position: absolute; top: 14px; right: 14px; z-index: 10;
-  display: flex; flex-direction: column; gap: 8px;
+  position: absolute; bottom: 14px; z-index: 10;
+  left: calc((100% - var(--info-w)) / 2);
+  transform: translateX(-50%);
+  display: flex; flex-direction: row; gap: 8px;
 }
 
 .ctrl-btn {
@@ -140,16 +155,18 @@ body {
 }
 
 .hint {
-  position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+  position: absolute; bottom: 84px;
+  left: calc((100% - var(--info-w)) / 2); transform: translateX(-50%);
   font-size: 12px; color: var(--muted); padding: 6px 14px; border-radius: 20px;
   background: rgba(10, 12, 26, 0.6); border: 1px solid var(--border);
   pointer-events: none;
 }
 
-/* ---------- 信息面板 ---------- */
+/* ---------- 信息面板（右侧分屏栏） ---------- */
 .info-panel {
-  position: absolute; left: 20px; bottom: 20px; max-width: 460px;
-  max-height: min(60vh, 500px); overflow-y: auto;
+  position: absolute; top: 14px; bottom: 14px; right: 14px;
+  width: calc(var(--info-w) - 14px);
+  overflow-y: auto;
   padding: 16px 18px; border-radius: 14px;
   background: rgba(14, 17, 34, 0.82); border: 1px solid var(--border);
   backdrop-filter: blur(10px); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
@@ -261,7 +278,7 @@ body {
   position: relative;
   width: min(96vw, 1180px); max-height: 92vh;
   display: flex; flex-direction: column;
-  padding: 18px 20px 14px;
+  padding: calc(14px + var(--statusbar-h, env(safe-area-inset-top, 0px))) 20px 14px;
   border-radius: 16px;
   background: linear-gradient(160deg, rgba(24, 28, 52, 0.97), rgba(12, 14, 30, 0.97));
   border: 1px solid rgba(120, 140, 200, 0.28);
@@ -283,7 +300,9 @@ body {
 .pt-close:hover { background: rgba(255, 90, 90, 0.18); border-color: rgba(255, 90, 90, 0.5); }
 
 .pt-scroll {
-  overflow: auto; padding-bottom: 4px;
+  /* 只允许上下滚动：18 列宽度由流体网格精确贴合面板，不再需要左右拖动 */
+  overflow-x: hidden; overflow-y: auto;
+  padding-bottom: 4px;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -291,18 +310,27 @@ body {
 .pt-scroll::-webkit-scrollbar-thumb { background: rgba(120, 140, 200, 0.3); border-radius: 4px; }
 
 .pt-grid {
+  /* 18 列流体网格：窄屏每格 = (面板内容宽-间隙)/18，恰好贴合左右边框；
+     宽屏不超过 54px（保持原有桌面观感），整体居中 */
   display: grid;
-  grid-template-columns: repeat(18, minmax(42px, 1fr));
+  grid-template-columns: repeat(18, 1fr);
   grid-auto-rows: auto;
   gap: 4px;
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
+  max-width: calc(18 * 54px + 17 * 4px);
+  margin: 0 auto;
 }
 
 .pt-cell {
   --pt-color: #7c8cff;
   position: relative; aspect-ratio: 1 / 1.08;
-  min-width: 42px; padding: 3px 4px 2px;
+  /* 关键：min-width 归零。网格项的自动最小尺寸会把"内容高度经 aspect-ratio
+     折算出的最小宽"当作 1fr 轨道下限，导致 18 列总宽超出面板、右侧整列被裁掉
+     且无法拖动查看（真机踩过，详见根 AGENTS.md）。归零后轨道严格等分贴合屏宽 */
+  min-width: 0; min-height: 0;
+  overflow: hidden;
+  line-height: 1.1;
+  padding: 2px 3px;
   display: flex; flex-direction: column; justify-content: space-between;
   border-radius: 8px; cursor: pointer; font-family: inherit;
   background: color-mix(in srgb, var(--pt-color) 15%, transparent);
@@ -325,13 +353,14 @@ body {
   z-index: 1;
 }
 
-.pt-z { font-size: 9px; color: var(--muted); text-align: left; }
+/* 格内字号随格子宽度（≈vw）等比缩放：窄屏变小但比例不变 */
+.pt-z { font-size: clamp(7px, 1.1vw, 9px); color: var(--muted); text-align: left; }
 .pt-sym {
-  font-size: 15px; font-weight: 700; text-align: center;
+  font-size: clamp(10px, 1.8vw, 15px); font-weight: 700; text-align: center;
   color: var(--pt-color);
 }
 .pt-name {
-  font-size: 10px; text-align: center; color: var(--text);
+  font-size: clamp(7.5px, 1.25vw, 10px); text-align: center; color: var(--text);
   opacity: 0.85; white-space: nowrap; overflow: hidden;
 }
 
@@ -340,7 +369,7 @@ body {
   border: 1px dashed rgba(120, 140, 200, 0.3);
   justify-content: center;
 }
-.pt-cell.pt-ph .pt-sym { font-size: 12px; color: var(--muted); font-weight: 600; }
+.pt-cell.pt-ph .pt-sym { font-size: clamp(9px, 1.5vw, 12px); color: var(--muted); font-weight: 600; }
 .pt-cell.pt-ph:hover { transform: none; box-shadow: none; }
 
 .pt-legend {
@@ -358,49 +387,80 @@ body {
   .pt-cell:hover { background: rgba(120, 140, 200, 0.25); }
 }
 
-/* ---------- 响应式：窄屏 ---------- */
+/* ---------- 响应式：窄屏（手机竖屏/小平板） ---------- */
 @media (max-width: 800px) {
-  .topbar { padding-left: 12px; padding-right: 12px; }
+  /* 顶栏压缩：减少占用的纵向空间，输入框保证占位文字完整显示 */
+  .topbar {
+    min-height: 46px; gap: 6px;
+    padding-left: 10px; padding-right: 10px;
+    padding-top: calc(6px + var(--statusbar-h, env(safe-area-inset-top, 0px)));
+    padding-bottom: 6px;
+  }
   .top-actions { gap: 6px; }
-  .custom-input input { width: 108px; }
-  .btn { padding: 8px 10px; font-size: 12px; }
-  .btn.primary svg { display: none; }
+  .brand svg { width: 20px; height: 20px; }
+  .brand h1 { font-size: 15px; }
   .brand .subtitle { display: none; }
-  .brand h1 { font-size: 17px; }
+  .custom-input { gap: 4px; }
+  /* 宽度 ≥ 6 个占位字符 + 内边距，"输入原子序数"不再被截断 */
+  .custom-input input { width: 118px; padding: 6px 9px; font-size: 12px; }
+  .btn { padding: 6px 9px; font-size: 12px; }
+  .btn.primary svg { display: none; }
 
   .info-panel {
-    left: 10px; right: 10px; bottom: 10px; max-width: none;
-    max-height: 46vh; padding: 13px 14px;
-    border-radius: 12px;
+    top: 10px; bottom: 10px; right: 10px;
+    width: calc(var(--info-w) - 10px);
+    padding: 12px 13px; border-radius: 12px;
   }
-  .info-title { font-size: 17px; }
+  .info-title { font-size: 16px; }
 
   .hint { display: none; }
 
-  .stage-controls { top: 10px; right: 10px; }
-  .ctrl-btn { width: 46px; font-size: 10px; }
+  .stage-controls { bottom: 10px; }
+  .ctrl-btn { width: 46px; font-size: 10px; padding: 6px 0 5px; }
 
   .pt-panel {
     width: 100vw; max-height: 96vh; height: 96vh;
-    border-radius: 0; padding: 14px 12px 10px;
+    border-radius: 0; padding: 12px 10px 8px;
   }
-  .pt-grid { grid-template-columns: repeat(18, minmax(40px, 1fr)); }
-  .pt-cell { min-width: 40px; }
   .pt-title h2 { font-size: 16px; }
 }
 
-/* ---------- 响应式：横屏手机（矮视口） ---------- */
+/* 竖屏手机（用户点"仍要竖屏使用"后）：退回上下布局，信息面板变底部卡片 */
+@media (orientation: portrait) and (max-width: 640px) {
+  #scene { width: 100%; }
+  .info-panel {
+    left: 10px; top: auto; bottom: 10px;
+    width: auto; max-height: 46vh;
+  }
+  .stage-controls {
+    bottom: auto; top: 10px; right: 10px; left: auto; transform: none;
+    flex-direction: column;
+  }
+}
+
+/* ---------- 响应式：横屏手机（矮视口，即 App 内的主要形态） ---------- */
 @media (max-height: 480px) {
-  .topbar { min-height: 46px; padding-top: calc(4px + env(safe-area-inset-top)); padding-bottom: 4px; }
-  .brand svg { width: 22px; height: 22px; }
-  .brand h1 { font-size: 15px; }
-  .brand .subtitle { display: none; }
-  .custom-input input { width: 96px; padding: 6px 10px; }
-  .btn { padding: 6px 10px; font-size: 12px; }
+  /* 顶栏悬浮化：不再占用纵向空间，3D 与信息栏用满全高。
+     背景透明、空白处 pointer-events 穿透（可直接拖拽旋转模型）；
+     品牌隐藏（应用名在桌面端/弹窗里仍可见），输入框和周期表按钮靠右排 */
+  .topbar {
+    position: absolute; top: 0; left: 0; right: var(--info-w);
+    min-height: 0; justify-content: flex-end; gap: 6px;
+    padding: calc(2px + var(--statusbar-h, env(safe-area-inset-top, 0px))) 10px 2px;
+    background: none; border-bottom: none; backdrop-filter: none;
+    pointer-events: none;
+  }
+  .topbar .brand { display: none; }
+  .topbar .custom-input,
+  .topbar .btn { pointer-events: auto; }
+  .custom-input input { width: 118px; padding: 5px 9px; font-size: 12px; }
+  .btn { padding: 5px 9px; font-size: 11.5px; }
 
   .info-panel {
-    max-width: 380px; max-height: 52vh; padding: 10px 14px;
-    bottom: 12px; left: 12px;
+    top: calc(10px + var(--statusbar-h, env(safe-area-inset-top, 0px)));
+    bottom: 10px; right: 10px;
+    width: calc(var(--info-w) - 10px);
+    padding: 10px 13px;
   }
   .info-title { font-size: 15px; margin-bottom: 3px; }
   .info-sub { margin-bottom: 4px; }
@@ -409,13 +469,16 @@ body {
   .info-sub-label { margin-top: 7px; margin-bottom: 5px; }
 
   .hint { display: none; }
+  .stage-controls { bottom: 10px; }
   .ctrl-btn { width: 42px; padding: 5px 0 4px; }
   .ctrl-btn svg { width: 14px; height: 14px; }
 
-  .pt-panel { max-height: 96vh; height: 96vh; padding: 10px 12px 8px; }
+  .pt-panel {
+    max-height: 96vh; height: 96vh;
+    padding: calc(8px + var(--statusbar-h, env(safe-area-inset-top, 0px))) 12px 8px;
+  }
   .pt-head { margin-bottom: 8px; }
   .pt-title h2 { font-size: 15px; }
-  .pt-grid { grid-template-columns: repeat(18, minmax(38px, 1fr)); }
-  .pt-cell { min-width: 38px; }
+  .pt-title span { display: none; } /* 副标题一行占太高，矮屏隐藏 */
   .pt-legend { margin-top: 8px; padding-top: 7px; }
 }

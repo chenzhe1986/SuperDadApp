@@ -543,6 +543,28 @@ document.getElementById('rotateSkip').addEventListener('click', function () {
   rotateTip.classList.add('dismissed');
 });
 
+// ---------- App 内状态栏避让 ----------
+// 【为什么】App 的 webview 是全屏沉浸式的，页面顶到状态栏图标下面；
+// 而 Android WebView 里 env(safe-area-inset-top) 常返回 0，CSS 无法避让。
+// 所以在 web-view 页面里用 5+ API 取真实状态栏高度，注入为 CSS 变量
+// --statusbar-h，供顶栏/周期表弹窗/信息栏的 padding-top 引用；
+// 浏览器里没有 plus，自动走 env() 回退，互不影响。
+function applyStatusbarInset() {
+  try {
+    if (window.plus && plus.navigator) {
+      var h = plus.navigator.getStatusbarHeight();
+      if (h > 0) {
+        document.documentElement.style.setProperty('--statusbar-h', h + 'px');
+      }
+    }
+  } catch (e) { /* 取不到就保持 env() 回退，不影响功能 */ }
+}
+if (window.plus) {
+  applyStatusbarInset();
+} else {
+  document.addEventListener('plusready', applyStatusbarInset, false);
+}
+
 // ---------- 启动 ----------
 resize();
 selectElement(ELEMENTS[0]); // 背景先摆一个氢原子
