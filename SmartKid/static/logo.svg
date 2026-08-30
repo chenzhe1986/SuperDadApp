@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 144 144">
+  <!-- 全能小学霸 小程序图标：戴学士帽的猫头鹰 · 天空蓝主题 -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7DBBFF"/>
+      <stop offset="1" stop-color="#4FA3F7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 圆角背景 -->
+  <rect x="0" y="0" width="144" height="144" rx="32" ry="32" fill="url(#bg)"/>
+
+  <!-- 耳朵（在脸后面，只露出尖角） -->
+  <polygon points="46,48 58,28 66,50" fill="#FFFFFF"/>
+  <polygon points="98,48 86,28 78,50" fill="#FFFFFF"/>
+
+  <!-- 猫头鹰脸/身体 -->
+  <ellipse cx="72" cy="82" rx="42" ry="40" fill="#FFFFFF"/>
+
+  <!-- 脚 -->
+  <ellipse cx="62" cy="119" rx="6" ry="4" fill="#FFB84D"/>
+  <ellipse cx="82" cy="119" rx="6" ry="4" fill="#FFB84D"/>
+
+  <!-- 左眼 -->
+  <circle cx="60" cy="78" r="15" fill="#4FA3F7"/>
+  <circle cx="60" cy="78" r="12.5" fill="#FFFFFF"/>
+  <circle cx="63" cy="80" r="7" fill="#2E3A59"/>
+  <circle cx="65" cy="77" r="2.5" fill="#FFFFFF"/>
+
+  <!-- 右眼 -->
+  <circle cx="84" cy="78" r="15" fill="#4FA3F7"/>
+  <circle cx="84" cy="78" r="12.5" fill="#FFFFFF"/>
+  <circle cx="81" cy="80" r="7" fill="#2E3A59"/>
+  <circle cx="83" cy="77" r="2.5" fill="#FFFFFF"/>
+
+  <!-- 嘴 -->
+  <polygon points="72,84 66,94 78,94" fill="#FFB84D"/>
+
+  <!-- 学士帽 -->
+  <polygon points="72,20 98,34 72,48 46,34" fill="#2E3A59"/>
+  <circle cx="72" cy="34" r="3" fill="#FFB84D"/>
+  <polyline points="72,34 96,34 96,52" fill="none" stroke="#2E3A59" stroke-width="2"/>
+  <circle cx="96" cy="54" r="4" fill="#FFB84D"/>
+</svg>

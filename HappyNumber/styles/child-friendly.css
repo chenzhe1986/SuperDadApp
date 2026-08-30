@@ -1,0 +1,354 @@
+/**
+ * 儿童友好型配色方案和样式
+ */
+ 
+/* 主色调 - 更活泼、明亮的儿童色彩 */
+:root {
+  --child-primary: #FF6B6B;     /* 活泼的珊瑚红 */
+  --child-primary-light: #FF8E8E;
+  --child-primary-dark: #FF4D4D;
+  --child-secondary: #4ECDC4;   /* 清新的薄荷绿 */
+  --child-secondary-light: #88D8D0;
+  --child-secondary-dark: #2A9D8F;
+  --child-accent: #FFE66D;      /* 鲜亮的黄色 */
+  --child-accent-light: #FFF09E;
+  --child-accent-dark: #FFD801;
+  --child-success: #95E1D3;     /* 柔和的青绿色 */
+  --child-error: #F37A87;       /* 温和的红色 */
+  --child-warning: #F9CA74;     /* 温暖的橙黄色 */
+  --child-info: #6A9BFF;        /* 清爽的蓝色 */
+  --child-background: #F7F9FC;  /* 柔和的背景色 */
+  --child-surface: #FFFFFF;     /* 卡片等表面颜色 */
+  
+  /* 文字颜色 */
+  --child-on-primary: #FFFFFF;
+  --child-on-secondary: #FFFFFF;
+  --child-on-accent: #333333;
+  --child-on-background: #333333;
+  --child-on-surface: #333333;
+  --child-on-success: #FFFFFF;
+  --child-on-error: #FFFFFF;
+  --child-on-warning: #FFFFFF;
+  --child-on-info: #FFFFFF;
+  
+  /* 卡通色彩 */
+  --child-cartoon-1: #FF9AA2;   /* 粉红 */
+  --child-cartoon-2: #FFB7B2;   /* 桃色 */
+  --child-cartoon-3: #FFDAC1;   /* 杏色 */
+  --child-cartoon-4: #E2F0CB;   /* 淡绿 */
+  --child-cartoon-5: #B5EAD7;   /* 薄荷绿 */
+  --child-cartoon-6: #C7CEEA;   /* 淡紫 */
+}
+
+/* 儿童风格按钮样式 */
+.child-button {
+  display: inline-block;
+  padding: 16rpx 32rpx;
+  margin: 10rpx 0;
+  border-radius: 24rpx;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  outline: none;
+  font-size: 32rpx;
+  min-height: 80rpx;
+  line-height: 48rpx;
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.child-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+}
+
+.child-button-primary {
+  background: linear-gradient(135deg, var(--child-primary), var(--child-primary-light));
+  color: var(--child-on-primary);
+}
+
+.child-button-secondary {
+  background: linear-gradient(135deg, var(--child-secondary), var(--child-secondary-light));
+  color: var(--child-on-secondary);
+}
+
+.child-button-accent {
+  background: linear-gradient(135deg, var(--child-accent), var(--child-accent-light));
+  color: var(--child-on-accent);
+}
+
+.child-button-outlined {
+  background-color: transparent;
+  border: 3rpx solid var(--child-primary);
+  color: var(--child-primary);
+}
+
+/* 儿童风格输入框样式 */
+.child-input {
+  width: 100%;
+  padding: 18rpx;
+  border: 3rpx solid var(--child-accent);
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  outline: none;
+  background-color: var(--child-surface);
+  transition: all 0.3s ease;
+  box-shadow: inset 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
+}
+
+.child-input:focus {
+  border-color: var(--child-primary);
+  box-shadow: 0 0 8rpx rgba(255, 107, 107, 0.4);
+}
+
+.child-input-label {
+  font-size: 30rpx;
+  color: var(--child-on-background);
+  margin-bottom: 12rpx;
+  font-weight: 600;
+}
+
+/* 儿童风格卡片样式 */
+.child-card {
+  background: linear-gradient(135deg, var(--child-surface), var(--child-accent-light));
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin: 20rpx 0;
+  box-shadow: 0 6rpx 12rpx rgba(0, 0, 0, 0.1);
+  border: 2rpx solid rgba(255, 230, 109, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.child-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,230,109,0.1) 0%, transparent 70%);
+  z-index: 0;
+}
+
+.child-card-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* 儿童风格徽章样式 */
+.child-chip {
+  display: inline-block;
+  padding: 10rpx 24rpx;
+  border-radius: 32rpx;
+  font-size: 28rpx;
+  margin: 10rpx;
+  color: var(--child-on-primary);
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  font-weight: 600;
+}
+
+.child-chip::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, rgba(255,255,255,0.2), transparent);
+  z-index: 1;
+}
+
+.child-chip-content {
+  position: relative;
+  z-index: 2;
+}
+
+.child-chip.happy {
+  background: linear-gradient(135deg, var(--child-success), #7ED6DF);
+  color: var(--child-on-success);
+}
+
+.child-chip.not-happy {
+  background: linear-gradient(135deg, var(--child-error), #F8A5A5);
+  color: var(--child-on-error);
+}
+
+.child-chip.process {
+  background: linear-gradient(135deg, var(--child-info), #87CEEB);
+  color: var(--child-on-info);
+}
+
+.child-chip.repeat {
+  background: linear-gradient(135deg, var(--child-warning), #F9CA74);
+  color: var(--child-on-warning);
+}
+
+/* 儿童风格列表项样式 */
+.child-list-item {
+  padding: 24rpx;
+  margin: 16rpx 0;
+  border-radius: 16rpx;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, var(--child-surface), #F0F4F8);
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.08);
+  border: 1rpx solid rgba(255, 230, 109, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.child-list-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, rgba(255,230,109,0.1), transparent);
+  z-index: 1;
+}
+
+.child-list-item-text {
+  color: var(--child-on-surface);
+  font-size: 32rpx;
+  font-weight: 600;
+  position: relative;
+  z-index: 2;
+}
+
+.child-list-item:hover {
+  transform: translateY(-4rpx);
+  box-shadow: 0 8rpx 16rpx rgba(0, 0, 0, 0.15);
+}
+
+/* 儿童风格标题样式 */
+.child-title {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: var(--child-primary);
+  margin: 24rpx 0;
+  text-align: center;
+  text-shadow: 2rpx 2rpx 4rpx rgba(255, 107, 107, 0.3);
+  position: relative;
+}
+
+.child-title::after {
+  content: '';
+  display: block;
+  width: 100rpx;
+  height: 8rpx;
+  background: linear-gradient(90deg, var(--child-primary), var(--child-accent));
+  margin: 10rpx auto;
+  border-radius: 4rpx;
+}
+
+.child-subtitle {
+  font-size: 36rpx;
+  color: var(--child-secondary-dark);
+  margin: 18rpx 0;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* 儿童风格文本样式 */
+.child-body1 {
+  font-size: 32rpx;
+  color: var(--child-on-background);
+  line-height: 1.6;
+}
+
+.child-body2 {
+  font-size: 28rpx;
+  color: var(--child-on-background);
+  line-height: 1.5;
+}
+
+/* 儿童风格动画效果 */
+@keyframes child-bounce {
+  0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+  40% {transform: translateY(-10rpx);}
+  60% {transform: translateY(-5rpx);}
+}
+
+@keyframes child-pulse {
+  0% {transform: scale(1);}
+  50% {transform: scale(1.05);}
+  100% {transform: scale(1);}
+}
+
+@keyframes float {
+  0% {transform: translateY(0rpx);}
+  50% {transform: translateY(-10rpx);}
+  100% {transform: translateY(0rpx);}
+}
+
+@keyframes rainbow-border-animation {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.child-animated {
+  animation: child-pulse 2s infinite;
+}
+
+.child-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* 彩虹边框 */
+.rainbow-border {
+  position: relative;
+}
+
+.rainbow-border::before {
+  content: '';
+  position: absolute;
+  top: -4rpx;
+  left: -4rpx;
+  right: -4rpx;
+  bottom: -4rpx;
+  background: linear-gradient(45deg, #FF9AA2, #FFB7B2, #FFDAC1, #E2F0CB, #B5EAD7, #C7CEEA, #6A9BFF);
+  border-radius: 24rpx;
+  z-index: -1;
+  animation: rainbow-border-animation 3s linear infinite;
+}
+
+/* 圆角元素 */
+.rounded-element {
+  border-radius: 20rpx;
+}
+
+/* 按钮点击效果 */
+.child-button:active {
+  transform: scale(0.95);
+  animation: none;
+}
+
+/* 徽章动画 */
+.child-chip.process {
+  animation: float 4s ease-in-out infinite;
+}
+
+.child-chip.process:nth-child(2n) {
+  animation-delay: 1s;
+}
+
+.child-chip.process:nth-child(3n) {
+  animation-delay: 2s;
+}
+
+.child-chip.process:nth-child(4n) {
+  animation-delay: 3s;
+}
+
+/* 列表项悬停效果 */
+.child-list-item:hover {
+  transform: translateY(-6rpx) scale(1.02);
+  box-shadow: 0 12rpx 24rpx rgba(0, 0, 0, 0.15);
+}

@@ -1,0 +1,20 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationStyle": "custom",
+        "app-plus": {
+          "bounce": "none",
+          "titleNView": false
+        }
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "化学视界",
+    "navigationBarBackgroundColor": "#0a0c1a",
+    "backgroundColor": "#0a0c1a"
+  }
+}

@@ -1,0 +1,61 @@
+# AGENTS.md · SuperDadApp 仓库说明（供 AI 助手与协作者阅读）
+
+## 仓库是什么
+
+本仓库是 3 个互不依赖的 uni-app 安卓小项目的合集根目录。每个子目录是一个独立的
+HBuilderX 工程，可单独打包成 APK：
+
+| 目录 | 应用 | 简介 | 项目级文档 |
+|---|---|---|---|
+| `SmartKid/` | 全能小学霸 | 中小学生知识答题闯关 APP（四~初三约 6000 题） | `SmartKid/AGENTS.md` |
+| `LabCraft/` | 化学视界 | 元素/分子/晶体 3D 科普（纯静态网页 + uni-app web-view 壳） | `LabCraft/AGENTS.md` |
+| `HappyNumber/` | 快乐数计算器 | 快乐数判断 / 范围计算 / 过程展示 | `HappyNumber/AGENTS.md` |
+| `AllInOne/` | 爸爸做的超级APP | **合并工程**：首页导航到上述 3 个应用的"全家桶" | `AllInOne/AGENTS.md` |
+
+## 合并工程（AllInOne）与同步流程
+
+- 3 个子项目保持独立、可单独打包；`AllInOne/` 的代码**全部由脚本从子项目同步**。
+- **改了任何子项目代码后，必须在仓库根目录运行 `python sync_all.py`**，
+  再打开 AllInOne 打包，否则全家桶里是旧代码。
+- AllInOne 里的生成物（`smartkid/`、`happynumber/`、`labcraft/`、`hybrid/html/`、
+  `static/smartkid/`、`pages.json`、`uni.scss`）**不要手改**；
+  手工维护的只有 `manifest.json`、`App.vue`、`pages/home/home.vue`
+  （细节见 `AllInOne/AGENTS.md`）。
+
+## 技术形态（通用）
+
+- 所有工程均为 **HBuilderX 项目结构**：无 npm、无 `package.json`、无构建步骤，
+  用 HBuilderX 打开即可运行/打包。**不要引入 npm 依赖或打包器**。
+- 打包目标：安卓 App（SmartKid 另支持微信小程序），详见各自打包指南。
+
+## 必须遵守的约定
+
+1. **修改代码要适当加注释（中文）**。尤其是说明"为什么这样改"（背景、意图、
+   边界情况），方便后续维护；但不要给每行都加无意义注释。
+2. **每次处理完成后，如有新的注意点（新发现的问题、易错点、需求带来的新约定等），
+   要及时补充到本 AGENTS.md 中**，方便后续会话复用，避免重复踩坑。
+3. 动某个子项目的代码前，先读它的 `AGENTS.md`；子项目专属约定以子项目文档为准。
+4. 不要手改任何工程的 `unpackage/`（编译产物），以及 `LabCraft/uniapp/hybrid/html/`
+   （同步副本，用 `LabCraft/sync_uniapp.py` 生成）。
+5. 打包入口与总览见根目录 `打包指南.md`。
+6. **git 单仓库管理**：全仓库只有根目录一份 `.gitignore`（2026-08 起子项目内的
+   `.git` 与 `.gitignore` 已移除）；不要在子项目内重新 `git init` 或新建 `.gitignore`。
+   **同步生成的副本/生成物一律不入库**（`LabCraft/uniapp/hybrid/html/`、
+   `AllInOne/hybrid/html/`、AllInOne 各生成目录与 `pages.json`、`uni.scss`），
+   保持仓库最简；克隆后打包前必须先跑同步脚本（见根 `.gitignore` 底部注释）。
+
+## 已踩过的坑（复用经验）
+
+- **Git Bash（MSYS）下 grep 搜以 `/` 开头的模式会被路径转换吞掉**：如
+  `grep "/static/"` 会被改写成 Git 安装目录下的路径，搜索结果静默为空，
+  容易误判"代码里没有这种引用"。解决办法：模式不要以 `/` 开头（如搜 `static/`），
+  或设置 `MSYS_NO_PATHCONV=1`。
+- **uni-app 工程间合并的约束**（本次合并 AllInOne 时确认）：
+  - 相对导入深度：子项目页面整体下移一层放进子目录（如 `smartkid/pages/...`），
+    内部 `../../utils/...` 相对路径保持有效，代码零改动；
+  - 静态资源：`/static/` 绝对路径引用必须由同步脚本改写分桶
+    （`/static/smartkid/...`），否则会 404；
+  - Vue 版本：合并工程必须统一 Vue 版本（AllInOne 用 Vue3；
+    HappyNumber 源码为 Vue2/Vue3 兼容写法，无需改动即可编译）；
+  - App 端每个 vue 页面是独立 webview，页面间样式互不污染，跨页污染只可能
+    来自 `App.vue` 全局样式——合并全局样式时注意类名冲突与 `page` 规则覆盖。

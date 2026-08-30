@@ -1,0 +1,76 @@
+# ============================================================
+# SuperDadApp 仓库根 · .gitignore（全仓库唯一，勿在子项目内重建）
+# 规则均不带前导斜杠，对任意子目录生效（如 unpackage/ 能匹配
+# SmartKid/、HappyNumber/、LabCraft/uniapp/、AllInOne/ 下的同名目录）。
+# ============================================================
+
+# ---- uni-app / HBuilderX 编译产物（云打包、真机运行时生成，可重建） ----
+unpackage/
+dist/
+build/
+.hbuilderx/
+
+# ---- 依赖（各项目当前零 npm 依赖；防止以后误提交） ----
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ---- Python（sync_all.py / sync_uniapp.py 运行产生的缓存） ----
+__pycache__/
+*.pyc
+
+# ---- 日志与临时文件 ----
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.cache/
+.temp/
+*.tmp
+*.bak
+*~
+
+# ---- 各平台小程序开发者工具产物 ----
+project.config.json.bak
+project.private.config.json
+
+# ---- 操作系统 ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- 编辑器 / IDE ----
+.idea/
+.vscode/
+.zcode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# ---- 环境与密钥 ----
+.env
+.env.local
+.env.*.local
+
+# ============================================================
+# 同步生成的副本 / 生成物（一律不入库，保持仓库最简）。
+# 克隆后打包前必须先运行同步脚本重建：
+#   化学视界：python LabCraft/sync_uniapp.py
+#   全家桶  ：python sync_all.py（在仓库根目录）
+# ============================================================
+LabCraft/uniapp/hybrid/html/
+AllInOne/hybrid/html/
+AllInOne/smartkid/
+AllInOne/happynumber/
+AllInOne/labcraft/
+AllInOne/static/smartkid/
+AllInOne/pages.json
+AllInOne/uni.scss
+
+# ---- 不要忽略的内容 ----
+# LabCraft/js/lib/three.min.js、OrbitControls.js 是刻意本地化的
+# 依赖（版本锁定 r147），【不要】忽略。
+# ============================================================

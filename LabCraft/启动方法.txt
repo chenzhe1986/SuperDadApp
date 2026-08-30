@@ -1,0 +1,5 @@
+网页版：直接双击 index.html 即可离线打开；
+或在本目录运行 python -m http.server 8000 后访问 http://127.0.0.1:8000
+
+安卓 App：见 README-UniApp.md（用 HBuilderX 打开 uniapp 文件夹编译）。
+修改网页代码后记得运行 python sync_uniapp.py 同步进 App 工程。

@@ -1,0 +1,49 @@
+{
+    "name" : "爸爸做的超级APP",
+    "appid" : "",
+    "description" : "爸爸做的三合一合集：知识答题、化学科普、快乐数计算",
+    "versionName" : "1.0.0",
+    "versionCode" : "100",
+    "transformPx" : false,
+    /* 统一用 Vue3 编译。HappyNumber 的页面是 Vue2/Vue3 兼容写法，可以一起编译 */
+    "vueVersion" : "3",
+    /* App(安卓/iOS)平台特有配置 */
+    "app-plus" : {
+        "usingComponents" : true,
+        "nvueStyleCompiler" : "uni-app",
+        "compilerVersion" : 3,
+        /* 启动界面配置：不等待首页渲染完成就关闭启动图会白屏，保持默认即可 */
+        "splashscreen" : {
+            "alwaysShowBeforeRender" : true,
+            "waiting" : true,
+            "autoclose" : true,
+            "delay" : 0
+        },
+        /* 本APP为纯本地应用，无需额外原生模块 */
+        "modules" : {},
+        "distribute" : {
+            /* 安卓打包配置 */
+            "android" : {
+                /* 纯本地应用，仅声明最基础权限，保护儿童隐私 */
+                "permissions" : [],
+                "autoSdkPermissions" : false
+            },
+            "ios" : {},
+            "sdkConfigs" : {}
+        },
+        /* 整体竖屏锁定。化学视界需要横屏，在 pages.json 里尝试用
+           页面级 pageOrientation 覆盖；若当前 uni-app 版本不支持该配置，
+           化学视界会以竖屏 + 自带窄屏响应式布局运行，仍可正常使用 */
+        "screenOrientation" : [ "portrait-primary" ]
+    },
+    /* H5 特有配置（方便在浏览器里调试预览） */
+    "h5" : {
+        "title" : "爸爸做的超级APP",
+        "router" : {
+            "mode" : "hash"
+        }
+    },
+    "uniStatistics" : {
+        "enable" : false
+    }
+}
