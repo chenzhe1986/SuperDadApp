@@ -41,7 +41,7 @@ static/smartkid/           SmartKid 静态资源（音效、二维码等）
 3. 调用 `LabCraft/sync_uniapp.py` 后，拷贝网页副本与 web-view 页面；
 4. 从 SmartKid 拷贝 `uni.scss`；
 5. 重新生成 `pages.json`（子应用 globalStyle 会合并进各自页面 style，
-   保留各自导航栏配色；化学视界页面带页面级 `pageOrientation: landscape`）。
+   保留各自导航栏配色；化学视界的横屏由页面内 plus API 动态控制，不在此配置）。
 
 ### 手工维护清单（脚本不碰，改子项目后需手动同步的点）
 
@@ -58,8 +58,10 @@ static/smartkid/           SmartKid 静态资源（音效、二维码等）
 2. **不要手改** `unpackage/`（编译产物）。
 3. Vue 统一为 **Vue3**：HappyNumber 源码是 Vue2/Vue3 兼容写法，可直接编译；
    在此工程新增代码请遵循 Vue3。
-4. 化学视界的页面级横屏（`pageOrientation`）依赖 uni-app 版本支持，若真机上
-   不生效会自动回退为竖屏（网页自带窄屏响应式布局，仍可用）；此行为需真机验证。
+4. **化学视界的横屏**由其页面内的 `plus.screen.lockOrientation` 动态实现
+   （进入锁横屏、返回恢复竖屏，源头在 `LabCraft/uniapp/pages/index/index.vue`，
+   随 sync 同步过来）。页面级 `pageOrientation` 已实测无效，勿再加回 pages.json；
+   网页内"全屏并锁定横屏"按钮在 App 内无效属正常（浏览器专用）。
 5. 页面样式互不干扰的原理：App 端每个 vue 页面独立 webview，跨页污染只可能来自
    `App.vue` 全局样式——往全局加类名时注意不要与 `child-*`、`sk-*`、`home` 系冲突。
 

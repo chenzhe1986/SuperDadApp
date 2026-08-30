@@ -58,4 +58,10 @@ HBuilderX 工程，可单独打包成 APK：
   - Vue 版本：合并工程必须统一 Vue 版本（AllInOne 用 Vue3；
     HappyNumber 源码为 Vue2/Vue3 兼容写法，无需改动即可编译）；
   - App 端每个 vue 页面是独立 webview，页面间样式互不污染，跨页污染只可能
-    来自 `App.vue` 全局样式——合并全局样式时注意类名冲突与 `page` 规则覆盖。
+    来自 `App.vue` 全局样式——合并全局样式时注意类名冲突与 `page` 规则覆盖；
+  - **页面级 `pageOrientation`（pages.json 的页面 style）真机实测不生效**（2026-08，
+    真机竖屏机器无任何旋转）。App 内需要动态横竖屏时，用 5+ API：
+    页面 `onLoad` 里 `plus.screen.lockOrientation('landscape')`、`onUnload` 里
+    `lockOrientation('portrait-primary')` 恢复（化学视界页面即此实现）；
+    另外 Web 的 `screen.orientation.lock` 在 App 的 WebView 里不可用，
+    网页内的横屏按钮无法控制 uni-app 页面方向，不要依赖。

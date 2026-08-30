@@ -57,7 +57,10 @@ README-UniApp.md      安卓打包步骤说明
 6. **交互流程是产品决策，不要"顺手"改回**：
    - 没有侧栏列表；入口 = 顶栏「元素周期表」（首屏自动打开）→ 点元素 → 信息面板「相关物质」→ 物质 → 「← 返回元素」；
    - 输入 >118 的数字显示**假想元素外推演示**（2n² 规律），这是保留的彩蛋功能；
-   - App 为**横屏**（uniapp/manifest.json 的 `app-plus.screenOrientation`）。
+   - App 为**横屏**（uniapp/manifest.json 的 `app-plus.screenOrientation`）；
+     页面进入时还会用 `plus.screen.lockOrientation('landscape')` 动态锁定、
+     `onUnload` 恢复竖屏——独立打包时与 manifest 叠加无害；AllInOne（全家桶，
+     manifest 锁竖屏）依赖该动态锁定才能横屏，勿删（见 uniapp/pages/index/index.vue）。
 7. **相机与入场动画**：`setModel` 先 `fitCamera()`（按 scale=1 算包围球）再缩放到 0.001 播放入场。
    不要把顺序换回去（会导致相机贴脸）。`fitCamera` 内部对 scale 做了归一，改动需保持该行为。
 8. **uniapp 工程文件**：manifest.json / pages.json 被 HBuilderX 可视化编辑器管理，格式有严格约定，

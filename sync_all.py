@@ -15,7 +15,7 @@
    与 web-view 页面到 AllInOne（hybrid/html 必须在合并工程根目录，web-view 才能加载）。
 4. uni.scss: 从 SmartKid 拷贝（sk-* 设计变量，被 AllInOne/App.vue 的全局样式引用）。
 5. 重新生成 AllInOne/pages.json：首页排第一；每个子应用的 globalStyle 合并进
-   它自己每个页面的 style（保留各自导航栏配色）；化学视界页面尝试页面级横屏。
+   它自己每个页面的 style（保留各自导航栏配色）。
 
 【手工维护、脚本不碰的文件】AllInOne/manifest.json、AllInOne/App.vue、
 AllInOne/pages/home/home.vue。子项目 App.vue/manifest 的改动需要手动同步。
@@ -56,14 +56,13 @@ HOME_PAGE = {
     },
 }
 
-# 化学视界的 web-view 页面。pageOrientation 尝试页面级横屏：
-# 若当前 uni-app 版本不支持该配置会被静默忽略，此时网页走自带的
-# 窄屏响应式布局，竖屏同样可用（真机跑一次即可确认实际效果）。
+# 化学视界的 web-view 页面。横屏不在这里配置——页面级 pageOrientation
+# 真机实测不生效（2026-08），改为由页面自身用 plus.screen.lockOrientation
+# 动态锁定：进入锁横屏、返回首页恢复竖屏，见 LabCraft/uniapp/pages/index/index.vue。
 LABCRAFT_PAGE = {
     "path": "labcraft/pages/index/index",
     "style": {
         "navigationStyle": "custom",
-        "pageOrientation": "landscape",
         "app-plus": {
             "bounce": "none",
             "titleNView": False,
