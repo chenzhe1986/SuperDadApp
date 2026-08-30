@@ -41,7 +41,7 @@
 				apps: [
 					{
 						name: '全能小学霸',
-						desc: '语文数学科学…6000+ 题闯关',
+						desc: '语文数学科学…8800+ 题闯关',
 						emoji: '📚',
 						bg: 'linear-gradient(135deg, #4FA3F7, #7DBBFF)',
 						url: '/smartkid/pages/index/index'

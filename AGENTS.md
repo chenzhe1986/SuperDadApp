@@ -7,7 +7,7 @@ HBuilderX 工程，可单独打包成 APK：
 
 | 目录 | 应用 | 简介 | 项目级文档 |
 |---|---|---|---|
-| `SmartKid/` | 全能小学霸 | 中小学生知识答题闯关 APP（四~初三约 6000 题） | `SmartKid/AGENTS.md` |
+| `SmartKid/` | 全能小学霸 | 中小学生知识答题闯关 APP（一~初三约 8900 题） | `SmartKid/AGENTS.md` |
 | `LabCraft/` | 化学视界 | 元素/分子/晶体 3D 科普（纯静态网页 + uni-app web-view 壳） | `LabCraft/AGENTS.md` |
 | `HappyNumber/` | 快乐数计算器 | 快乐数判断 / 范围计算 / 过程展示 | `HappyNumber/AGENTS.md` |
 | `AllInOne/` | 爸爸做的超级APP | **合并工程**：首页导航到上述 3 个应用的"全家桶" | `AllInOne/AGENTS.md` |

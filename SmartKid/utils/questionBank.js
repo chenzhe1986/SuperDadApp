@@ -13,6 +13,9 @@
  */
 
 // 各年级题库；新年级在这里继续 import
+import grade1 from '../data/grade1.json'
+import grade2 from '../data/grade2.json'
+import grade3 from '../data/grade3.json'
 import grade4 from '../data/grade4.json'
 import grade5 from '../data/grade5.json'
 import grade6 from '../data/grade6.json'
@@ -22,6 +25,9 @@ import grade9 from '../data/grade9.json'
 
 // 年级编号 -> 题库数据 的映射表
 const BANKS = {
+	1: grade1,
+	2: grade2,
+	3: grade3,
 	4: grade4,
 	5: grade5,
 	6: grade6,
@@ -35,9 +41,9 @@ const BANKS = {
  * enabled 为 false 的年级会显示"敬请期待"，不能点击
  */
 export const GRADES = [
-	{ value: 1, label: '一年级', icon: '🌱', enabled: false },
-	{ value: 2, label: '二年级', icon: '🌿', enabled: false },
-	{ value: 3, label: '三年级', icon: '🍀', enabled: false },
+	{ value: 1, label: '一年级', icon: '🌱', enabled: true },
+	{ value: 2, label: '二年级', icon: '🌿', enabled: true },
+	{ value: 3, label: '三年级', icon: '🍀', enabled: true },
 	{ value: 4, label: '四年级', icon: '🌳', enabled: true },
 	{ value: 5, label: '五年级', icon: '🌲', enabled: true },
 	{ value: 6, label: '六年级', icon: '🎓', enabled: true },

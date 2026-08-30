@@ -1,12 +1,13 @@
 // ============================================================
 // 化学视界 · 主逻辑（经典脚本版；全局：THREE, ELEMENTS, CATEGORIES,
 // ELEMENT_STYLE, SUBSTANCES, categoryColor, categoryLabel, getElement,
-// substancesForElement, buildAtom, buildMegaAtom, buildMolecule,
+// substancesForElement, buildAtom, buildNeutron, buildMegaAtom, buildMolecule,
 // buildCrystal, buildRepresentativeAtom, disposeModel,
 // buildPeriodicTable, updatePeriodicHighlight, buildPtLegend, hexToRgba）
 //
 // 交互流程：顶栏「元素周期表」→ 点选元素 → 介绍 + 3D 原子
 //           → 信息面板「相关物质」→ 化合物介绍 + 3D 结构 → 可返回元素
+//           顶栏输入 0 → 自由中子（亚原子粒子彩蛋）
 // ============================================================
 
 // ---------- 渲染器 / 场景 / 相机 ----------
@@ -177,7 +178,33 @@ function updateInfo(data) {
   else updateInfoElement(data);
 }
 
+// 0 号"元素"：自由中子（亚原子粒子，不属于周期表 118 元素）
+// 放在这里而不是 data.js，因为它不是真实元素，仅由输入 0 触发
+const NEUTRON_DATA = {
+  isNeutron: true, fake: false, number: 0, name: '中子', symbol: 'n',
+  category: '亚原子粒子',
+  desc: '中子是比原子更小一级的"亚原子粒子"：不带电，和质子手拉手住在原子核里。' +
+    '普通氢原子的原子核只有 1 个质子、没有中子，所以输入 0 就像得到一颗"单独的中子"。' +
+    '不过自由中子很不安分，平均约 15 分钟就会衰变成 1 个质子、1 个电子和 1 个反中微子；' +
+    '而宇宙中的"中子星"，就是无数中子紧紧挤在一起组成的超级"大原子核"。',
+}
+
 function updateInfoElement(el) {
+  // 中子（0 号）走专门的信息卡：没有电子层/相关物质，也不参与周期表高亮
+  if (el.isNeutron) {
+    currentElement = null;
+    infoTitle.textContent = '0 · 中子（' + el.symbol + '）';
+    infoSub.innerHTML = '';
+    infoSub.appendChild(makeChip(el.category, '#37d0c9'));
+    infoMeta.textContent = '质量 ≈ 1u（与质子相当）· 不带电 · 自由状态平均寿命约 15 分钟';
+    infoDesc.textContent = el.desc;
+    infoLegend.innerHTML = '';
+    infoSubLabel.style.display = 'none';
+    infoSubstances.innerHTML = '';
+    infoBack.classList.add('hidden');
+    updatePeriodicHighlight(-1);
+    return;
+  }
   currentElement = el.fake ? null : el;
   infoTitle.textContent = el.fake
     ? '第 ' + fmtNum(el.number) + ' 号"元素"？（假想）'
@@ -412,6 +439,10 @@ function fakeDesc() {
 }
 
 function showCustomAtom(Z) {
+  if (Z === 0n) { // 0 号：中子（只有一颗中子的"原子"）
+    setModel(buildNeutron(), NEUTRON_DATA);
+    return;
+  }
   const el = Z <= 118n ? getElement(Number(Z)) : null;
   if (el) {
     selectElement(el);
@@ -454,12 +485,11 @@ function showHint(text) {
 
 function handleCustomInput() {
   const raw = zInput.value.trim();
-  if (!raw) { showHint('请输入原子序数（1~118 为真实元素）'); return; }
+  if (!raw) { showHint('请输入原子序数：1~118 为真实元素，0 是中子'); return; }
   if (!/^\d+$/.test(raw)) { showHint('请输入正整数'); return; }
+  // 0 也合法（中子），交给 showCustomAtom 分流；001 这类前导零会被归一成 0
   const cleaned = raw.replace(/^0+/, '') || '0';
-  if (cleaned === '0') { showHint('请输入 1 以上的数字'); return; }
-  const Z = BigInt(cleaned);
-  showCustomAtom(Z);
+  showCustomAtom(BigInt(cleaned));
   zInput.blur();
 }
 

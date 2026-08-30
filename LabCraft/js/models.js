@@ -1,6 +1,7 @@
 // ============================================================
 // 化学视界 · 3D 模型渲染（经典脚本版，全局 THREE / ELEMENT_STYLE）
-// buildAtom 玻尔原子 / buildMegaAtom 假想大原子 / buildMolecule 球棍分子
+// buildAtom 玻尔原子 / buildNeutron 自由中子（0 号） / buildMegaAtom 假想大原子
+// buildMolecule 球棍分子
 // buildCrystal 晶体（rock 岩盐 · cscl 氯化铯 · zincblende 闪锌矿·金刚石
 //               · metal 金属晶体 bcc/fcc/hcp/sc · graphite 石墨层）
 // disposeModel 释放 GPU 资源
@@ -194,6 +195,30 @@ function buildAtom(el) {
     });
   });
 
+  return group;
+}
+
+// ---- 0 号"元素"：自由中子（只有一颗中子，没有质子和电子轨道） ----
+// 复用 kind='atom' + 空 shells：动画循环里的原子核脉动会自动生效
+function buildNeutron() {
+  const group = new THREE.Group();
+  group.name = 'atom';
+  group.userData.kind = 'atom';
+  group.userData.shells = [];
+
+  const nucleus = new THREE.Group();
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(0.17, 20, 14),
+    new THREE.MeshStandardMaterial({
+      color: NEUTRON_COLOR, roughness: 0.35, metalness: 0.1,
+      emissive: NEUTRON_COLOR, emissiveIntensity: 0.3,
+    }),
+  );
+  mesh.add(makeGlowSprite(NEUTRON_COLOR, 1.3));
+  nucleus.add(mesh);
+  nucleus.add(makeGlowSprite(0x88aaff, 1.15));
+  group.add(nucleus);
+  group.userData.nucleus = nucleus;
   return group;
 }
 

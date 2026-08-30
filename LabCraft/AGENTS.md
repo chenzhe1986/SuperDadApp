@@ -71,7 +71,11 @@ README-UniApp.md      安卓打包步骤说明
      横屏矮视口（App 主形态）下顶栏**悬浮**在 3D 区上方（absolute + 透明背景 +
      pointer-events 穿透，品牌隐藏、控件靠右），不占用纵向空间；
      状态栏避让靠 main.js 注入的 `--statusbar-h`（plus API 取真实高度，
-     Android WebView 里 env(safe-area-inset-top) 常为 0，勿删该注入逻辑）。
+     Android WebView 里 env(safe-area-inset-top) 常为 0，勿删该注入逻辑）；
+   - 输入 0 显示**自由中子**（亚原子粒子彩蛋，2026-08 新增）：模型由
+     `buildNeutron()` 生成（kind='atom' + 空 shells，自动复用原子核脉动动画），
+     信息卡走 `updateInfoElement` 的 `isNeutron` 分支；中子不是周期表元素，
+     不参与周期表高亮和"相关物质"，输入 119 及以上仍是假想元素外推演示。
 7. **相机与入场动画**：`setModel` 先 `fitCamera()`（按 scale=1 算包围球）再缩放到 0.001 播放入场。
    不要把顺序换回去（会导致相机贴脸）。`fitCamera` 内部对 scale 做了归一，改动需保持该行为。
 8. **uniapp 工程文件**：manifest.json / pages.json 被 HBuilderX 可视化编辑器管理，格式有严格约定，

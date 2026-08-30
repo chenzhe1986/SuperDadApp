@@ -14,7 +14,7 @@ const fs = require('fs')
 const path = require('path')
 
 // 需要校验的题库文件（后续扩年级只需往这里加）
-const files = ['grade4.json', 'grade5.json', 'grade6.json', 'grade7.json', 'grade8.json', 'grade9.json']
+const files = ['grade1.json', 'grade2.json', 'grade3.json', 'grade4.json', 'grade5.json', 'grade6.json', 'grade7.json', 'grade8.json', 'grade9.json']
 const dataDir = path.join(__dirname, '..', 'data')
 
 let hasError = false
