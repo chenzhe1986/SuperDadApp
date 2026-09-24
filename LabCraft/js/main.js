@@ -4,10 +4,21 @@
 // substancesForElement, buildAtom, buildNeutron, buildMegaAtom, buildMolecule,
 // buildCrystal, buildRepresentativeAtom, disposeModel,
 // buildPeriodicTable, updatePeriodicHighlight, buildPtLegend, hexToRgba）
+// ============================================================
+// 化学视界 · 主逻辑（经典脚本版；全局：THREE, ELEMENTS, CATEGORIES,
+// ELEMENT_STYLE, SUBSTANCES, categoryColor, categoryLabel, getElement,
+// substancesForElement, buildAtom, buildNeutron, buildMegaAtom, buildMolecule,
+// buildCrystal, buildRepresentativeAtom, disposeModel,
+// buildPeriodicTable, updatePeriodicHighlight, buildPtLegend, hexToRgba,
+// playClick, readText, soundEnabled, setSoundEnabled（来自 js/sound.js））
 //
 // 交互流程：顶栏「元素周期表」→ 点选元素 → 介绍 + 3D 原子
 //           → 信息面板「相关物质」→ 化合物介绍 + 3D 结构 → 可返回元素
 //           顶栏输入 0 → 自由中子（亚原子粒子彩蛋）
+//
+// 声音约定：所有"选中/确认"类交互在这里统一补 playClick（sound.js），
+// 介绍文字朗读只在 updateInfo 统一分发处挂 readText（setModel 唯一入口，
+// 保证 118 元素/197 物质/中子/假想元素一处覆盖且只读一次）。
 // ============================================================
 
 // ---------- 渲染器 / 场景 / 相机 ----------
@@ -174,6 +185,11 @@ let currentSubstance = null; // 最近浏览的物质
 
 // 统一的信息分发：setModel 会调用这里
 function updateInfo(data) {
+  // 进入元素/物质界面即朗读介绍文字。挂在这里是因为它是 setModel 的
+  // 唯一分发点：118 元素、197 物质、0 号中子、假想元素全部走这里，
+  // 且每次切换只触发一次（挂 updateInfoElement 的话每次会选择两次）。
+  // 首屏启动的自动加载不读——sound.js 内部有手势门控，未交互前静默。
+  readText(data.desc || '');
   if (data.composition) updateInfoSubstance(data);
   else updateInfoElement(data);
 }
@@ -307,11 +323,16 @@ function updateInfoSubstance(sub) {
 // ---------- 选中元素 / 物质 ----------
 function selectElement(el) {
   if (!el) return;
+  // 选中确认音：周期表格子、输入框跳转、相关物质 chip、「返回元素」
+  // 全都汇聚到这两个函数，这里是音效的唯一挂点（启动自动加载时
+  // sound.js 的手势门控会自动跳过，不会误响）。
+  playClick('pick');
   updateInfoElement(el);
   swapModel(el);
 }
 
 function showSubstance(sub) {
+  playClick('pick');
   updateInfoSubstance(sub);
   swapModel(sub);
 }
@@ -320,16 +341,40 @@ infoBack.addEventListener('click', function () {
   if (currentElement) selectElement(currentElement);
 });
 
+// ---------- 声音开关 + 重读按钮 ----------
+// 声音总开关（js/sound.js 提供状态，持久化在 localStorage）：
+// 点击切换后同步按钮图标与 aria 状态；开启时给一声反馈便于确认
+const soundToggleBtn = document.getElementById('soundToggle');
+function syncSoundToggle() {
+  soundToggleBtn.classList.toggle('muted', !soundEnabled);
+  soundToggleBtn.setAttribute('aria-pressed', soundEnabled ? 'true' : 'false');
+}
+syncSoundToggle();
+soundToggleBtn.addEventListener('click', function () {
+  setSoundEnabled(!soundEnabled);
+  syncSoundToggle();
+  if (soundEnabled) playClick('pick');
+});
+
+// 信息面板重读按钮：自动朗读被打断/想再听一遍时，强制重读当前介绍
+const readSpeakBtn = document.getElementById('readSpeakBtn');
+readSpeakBtn.addEventListener('click', function () {
+  playClick('pick');
+  readText(infoDesc.textContent, true);
+});
+
 // ---------- 舞台悬浮按钮 ----------
 const autoRotateBtn = document.getElementById('autoRotate');
 const resetViewBtn = document.getElementById('resetView');
 
 autoRotateBtn.addEventListener('click', function () {
+  playClick('pop');
   controls.autoRotate = !controls.autoRotate;
   autoRotateBtn.classList.toggle('active', controls.autoRotate);
 });
 
 resetViewBtn.addEventListener('click', function () {
+  playClick('pop');
   fitCamera();
 });
 
@@ -347,16 +392,20 @@ buildPeriodicTable(ptGrid, function (el) {
 buildPtLegend(ptLegend);
 
 function openPeriodic() {
+  playClick('pop');
   ptModal.classList.add('open');
 }
 function closePeriodic() {
+  // 关闭音不放在这里：点格子选元素时 onPick 会先响"pick"选中音、
+  // 再调 closePeriodic——若此处也响一声会叠加成"哒哒"两声。
+  // 关闭音由 X 按钮 / 遮罩 / Esc 各自触发。
   ptModal.classList.remove('open');
 }
 document.getElementById('periodicBtn').addEventListener('click', openPeriodic);
-ptClose.addEventListener('click', closePeriodic);
-ptBackdrop.addEventListener('click', closePeriodic);
+ptClose.addEventListener('click', function () { playClick('pop'); closePeriodic(); });
+ptBackdrop.addEventListener('click', function () { playClick('pop'); closePeriodic(); });
 window.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape') closePeriodic();
+  if (e.key === 'Escape') { playClick('pop'); closePeriodic(); }
 });
 
 // ---------- 自定义元素输入 ----------
@@ -484,6 +533,7 @@ function showHint(text) {
 }
 
 function handleCustomInput() {
+  playClick('pop');
   const raw = zInput.value.trim();
   if (!raw) { showHint('请输入原子序数：1~118 为真实元素，0 是中子'); return; }
   if (!/^\d+$/.test(raw)) { showHint('请输入正整数'); return; }

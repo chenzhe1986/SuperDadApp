@@ -32,6 +32,19 @@
           <rect x="3" y="17" width="5" height="4" rx="1" /><rect x="10" y="17" width="5" height="4" rx="1" />
         </svg>元素周期表
       </button>
+      <!-- 声音总开关：一键静音/恢复交互音效与介绍朗读（状态存 localStorage） -->
+      <button id="soundToggle" class="btn sound-toggle" title="声音 开/关" aria-pressed="true">
+        <svg class="icon-sound" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <path d="M11 5 6 9H3v6h3l5 4z" />
+          <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+          <path d="M18.5 5.5a9 9 0 0 1 0 13" />
+        </svg>
+        <svg class="icon-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path d="M11 5 6 9H3v6h3l5 4z" />
+          <line x1="22" y1="9" x2="16" y2="15" /><line x1="16" y1="9" x2="22" y2="15" />
+        </svg>
+        <span>声音</span>
+      </button>
     </div>
   </header>
 
@@ -51,6 +64,14 @@
     </div>
     <div class="hint">拖拽旋转 · 双指缩放 · 右键平移</div>
     <div id="infoPanel" class="info-panel">
+      <!-- 重读按钮：点击重新朗读当前介绍（自动朗读被打断或想再听一遍时用） -->
+      <button id="readSpeakBtn" class="info-read" type="button" title="重新朗读介绍" aria-label="重新朗读介绍">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path d="M11 5 6 9H3v6h3l5 4z" />
+          <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+          <path d="M18.5 5.5a9 9 0 0 1 0 13" />
+        </svg>
+      </button>
       <div class="info-title" id="infoTitle"></div>
       <div class="info-sub" id="infoSub"></div>
       <div class="info-meta" id="infoMeta"></div>
@@ -102,6 +123,7 @@
   <script src="js/substances.js"></script>
   <script src="js/models.js"></script>
   <script src="js/periodic.js"></script>
+  <script src="js/sound.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

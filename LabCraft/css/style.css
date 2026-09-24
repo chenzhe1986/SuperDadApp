@@ -228,6 +228,36 @@ body {
 }
 .info-back.hidden { display: none; }
 
+/* ---------- 声音开关与重读按钮 ---------- */
+/* 顶栏声音总开关：正常显示喇叭波纹图标，静音（.muted）时切换成叉号图标 */
+.sound-toggle { padding: 8px 12px; }
+.sound-toggle .icon-sound { display: inline-flex; }
+.sound-toggle .icon-muted { display: none; }
+.sound-toggle.muted {
+  color: var(--muted); opacity: 0.72;
+  border-color: rgba(120, 140, 200, 0.3);
+}
+.sound-toggle.muted .icon-sound { display: none; }
+.sound-toggle.muted .icon-muted { display: inline-flex; }
+
+/* 信息面板右上角"重读"按钮：绝对定位避免影响 infoTitle 的文本填充 */
+.info-read {
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border); background: rgba(120, 140, 200, 0.14);
+  color: var(--muted); cursor: pointer; font-family: inherit;
+  transition: all 0.16s ease;
+}
+.info-read svg { width: 15px; height: 15px; }
+.info-read:hover {
+  color: var(--accent2);
+  border-color: rgba(55, 208, 201, 0.5);
+  box-shadow: 0 0 10px rgba(55, 208, 201, 0.2);
+}
+/* 标题留出按钮空间，避免长标题顶到重读按钮 */
+.info-panel .info-title { padding-right: 34px; }
+
 /* ---------- 竖屏提醒（手机竖屏时显示） ---------- */
 .rotate-tip {
   position: fixed; inset: 0; z-index: 200;

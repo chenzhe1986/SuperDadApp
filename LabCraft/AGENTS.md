@@ -25,6 +25,7 @@ js/data.js            118 个元素数据：名称/质量/shells/分类/周期�
 js/substances.js      197 种物质：分子/离子簇（atoms+bonds）+ 晶体（lattice 规格）+ 元素→物质索引
 js/models.js          3D 渲染：buildAtom 玻尔原子 / buildMolecule 球棍 / buildCrystal 晶体 / buildMegaAtom 假想大原子
 js/periodic.js        周期表弹窗组件（18 列布局，镧系锕系第 9/10 行）
+js/sound.js           声音与朗读（零资源）：WebAudio 合成点击音效 + speechSynthesis 中文朗读 + 总开关
 js/main.js            主逻辑：场景/相机/交互流程/信息面板/输入框
 js/lib/               three.min.js + OrbitControls.js（r147 UMD，本地化，勿升级）
 tools/validate.js     数据一致性校验脚本（node 运行）
@@ -80,6 +81,16 @@ README-UniApp.md      安卓打包步骤说明
    不要把顺序换回去（会导致相机贴脸）。`fitCamera` 内部对 scale 做了归一，改动需保持该行为。
 8. **uniapp 工程文件**：manifest.json / pages.json 被 HBuilderX 可视化编辑器管理，格式有严格约定，
    修改时保守一点；`uniapp/unpackage/` 是编译产物，已 gitignore。
+9. **声音与朗读（2026-09 新增，见 js/sound.js）**：
+   - 零资源实现：点击音效 = WebAudio 现场合成（`playClick('pick'|'pop')`），介绍朗读 = Web Speech API
+     `readText(text, force)`，无需音频文件、无需改 manifest；
+   - 挂点约定：选中类点击（周期表格子/物质 chip/输入跳转/返回）统一在 `selectElement` 与
+     `showSubstance` 里响音效；朗读只在 `updateInfo`（setModel 的唯一分发点）挂 `readText(data.desc)`，
+     **不要**挂在 `updateInfoElement`（每次选择会被调两遍，会重复读）；
+   - sound.js 有手势门控：首次 pointerdown/keydown 之前发声与朗读一律跳过——首屏自动选中氢、
+     自动弹开周期表不会误发音，也满足浏览器自动播放策略；
+   - 顶栏「声音」按钮是总开关，状态持久化在 localStorage（键 `labcraft_sound`），静音时会
+     cancel 正在朗读的句子；信息面板右上角喇叭是"重读"按钮（force 重读，不管 4 秒去重）。
 
 ## 常用命令
 
@@ -100,3 +111,6 @@ python sync_uniapp.py
 - 离子对（如 KNO₃、BaSO₄）画的是一个离子对/配位单元，不是整块晶体。
 - 假想元素渲染（>118 输入）走 mega/外推路径，上限画 200 个示意环。
 - 部分安卓 WebView 若不支持 CSS `color-mix()`，周期表格子会退化为统一底色（有 @supports 兜底，属可接受降级）。
+- 朗读（speechSynthesis）能否出声取决于系统是否装了中文 TTS 引擎：华为/小米等主流机型自带，
+  个别设备没有时会只听到音效、朗读静默（代码已 try/catch 兜底，不影响其它功能）。
+  若以后想换更硬的原生方案 `plus.speech.startSpeaking`，需在 HBuilderX 的 manifest 勾选 Speech 模块。
