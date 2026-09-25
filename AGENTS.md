@@ -66,6 +66,24 @@ HBuilderX 工程，可单独打包成 APK：
   `grep "/static/"` 会被改写成 Git 安装目录下的路径，搜索结果静默为空，
   容易误判"代码里没有这种引用"。解决办法：模式不要以 `/` 开头（如搜 `static/`），
   或设置 `MSYS_NO_PATHCONV=1`。
+- **onBackPress 里 return true 之后调 uni.navigateBack 可能被页面栈静默忽略**
+  （2026-09-25，化学视界 web-view 壳页三合一真机踩到）：表现为按系统返回键
+  毫无反应、完全被困在页面里；把 navigateBack 放进 setTimeout 也躲不开。
+  返回键场景退出页面不要单发一次 navigateBack 就完事：要带 fail 回调、
+  延时验证"页面还活着就重试"，最后用 plus 原生 webview.close() 兜底
+  （化学视界壳页 realExit 的三层兜底是现成模板）。
+  **注意：原生 webview.close() 关页不触发 uni 的 onUnload 等生命周期**，页面级
+  清理（如恢复锁定的屏幕方向——plus.screen 是 App 全局的）要在发起退出时就做，
+  并在回退目标页 onShow 兜底（AllInOne 首页 home.vue 即此做法）。
+- **App 端 vue 页面的 JS 跑在 app-service（v8）上下文里，没有 `window` 全局**
+  （2026-09-25，化学视界竖屏恢复三处判断全部因此失效真机踩到）：`window.plus`
+  这类判断直接抛 ReferenceError、又被 try/catch 静默吞掉，表现为"代码看着写了
+  但完全不生效"。App 端判断一律用裸 `plus` + `typeof plus`；只有 web-view 里
+  的网页（真实浏览器环境）才用 `window.plus`。另外恢复屏幕方向别只调
+  `lockOrientation('portrait-primary')`（个别 ROM/5+ 版本不认这个值），按
+  unlockOrientation → lock('portrait') → lock('portrait-primary') → 反射
+  `Activity.setRequestedOrientation(1)` 层层兜底（化学视界壳页 restorePortrait
+  与 AllInOne 首页 onShow 是现成模板）。
 - **uni-app 工程间合并的约束**（本次合并 AllInOne 时确认）：
   - 相对导入深度：子项目页面整体下移一层放进子目录（如 `smartkid/pages/...`），
     内部 `../../utils/...` 相对路径保持有效，代码零改动；

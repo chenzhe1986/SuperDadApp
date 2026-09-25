@@ -19,6 +19,13 @@
       <span class="subtitle">3D 元素与物质演示</span>
     </div>
     <div class="top-actions">
+      <!-- 顶栏「← 返回」：浏览过元素/物质后出现（main.js 按历史栈显隐），
+           与系统返回键同一语义，一层层回退 -->
+      <button id="navBackBtn" class="btn nav-back" hidden aria-label="返回上一层" title="返回上一层">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>返回
+      </button>
       <div class="custom-input">
         <input id="zInput" type="text" inputmode="numeric" placeholder="输入原子序数" maxlength="100" />
         <button id="zGo" class="btn">显示</button>
@@ -79,7 +86,6 @@
       <div class="info-legend" id="infoLegend"></div>
       <div class="info-sub-label" id="infoSubLabel">相关物质（点击查看 3D 结构）</div>
       <div class="info-substances" id="infoSubstances"></div>
-      <button id="infoBack" class="btn info-back hidden"></button>
     </div>
   </main>
 
@@ -104,11 +110,11 @@
     <div id="ptBackdrop" class="pt-backdrop"></div>
     <div class="pt-panel">
       <div class="pt-head">
+        <!-- 无关闭按钮：按需求去掉了 ✕，退出途径 = 选元素/点遮罩/Esc/系统返回 -->
         <div class="pt-title">
           <h2>元素周期表</h2>
           <span>1 ~ 118 号 · 点击元素查看介绍与 3D 原子结构</span>
         </div>
-        <button id="ptClose" class="pt-close" aria-label="关闭">✕</button>
       </div>
       <div class="pt-scroll">
         <div id="ptGrid" class="pt-grid"></div>

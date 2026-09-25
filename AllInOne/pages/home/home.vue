@@ -63,6 +63,35 @@
 				]
 			}
 		},
+		// 【为什么要在这里恢复竖屏】化学视界的 web-view 壳页会用 plus.screen 动态锁
+		// 横屏（App 全局生效）。壳页正常退出走 onUnload 会恢复竖屏，但如果它是被
+		// 返回键退出链路最后一层"原生 webview.close()"关掉的，onUnload 不会触发，
+		// 横屏就会残留——表现为主页甚至 SmartKid/快乐数全变横屏（2026-09-25 真机复现）。
+		// 首页是所有子应用的汇合点，onShow 强制恢复竖屏兜底：从这里进任何子应用
+		// 都先回到竖屏。壳页自身已在发起退出时恢复，这里通常是无害的重复执行。
+		// #ifdef APP-PLUS
+		onShow() {
+			// 【判断必须用裸 plus + typeof】App 端页面代码跑在 app-service（v8）
+			// 上下文里，没有 window 全局；用 window.plus 判断会抛 ReferenceError、
+			// 被 try/catch 静默吞掉——2026-09-25 化学视界横屏残留第二轮的根因，
+			// 当时这里的 onShow 修复就是因此一行都没执行过。三层手段确保竖屏
+			// 恢复（与化学视界壳页 restorePortrait 同一套），详见其注释：
+			if (typeof plus === 'undefined' || !plus.screen) return;
+			// ① 解除动态锁，回到 manifest 声明的竖屏
+			try { plus.screen.unlockOrientation && plus.screen.unlockOrientation(); } catch (e) { /* 忽略 */ }
+			// ② 显式锁回竖屏（两种值拼写都试，防个别版本不认 portrait-primary）
+			try { plus.screen.lockOrientation('portrait'); } catch (e) { /* 忽略 */ }
+			try { plus.screen.lockOrientation('portrait-primary'); } catch (e) { /* 忽略 */ }
+			// ③ 终极兜底：反射直调安卓 Activity API（1 = SCREEN_ORIENTATION_PORTRAIT）
+			try {
+				const main = plus.android && plus.android.runtimeMainActivity();
+				if (main) {
+					plus.android.importClass(main);
+					main.setRequestedOrientation(1);
+				}
+			} catch (e) { /* 忽略 */ }
+		},
+		// #endif
 		methods: {
 			openApp(app) {
 				uni.navigateTo({

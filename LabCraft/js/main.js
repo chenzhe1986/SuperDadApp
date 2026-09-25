@@ -10,7 +10,7 @@
 // substancesForElement, buildAtom, buildNeutron, buildMegaAtom, buildMolecule,
 // buildCrystal, buildRepresentativeAtom, disposeModel,
 // buildPeriodicTable, updatePeriodicHighlight, buildPtLegend, hexToRgba,
-// playClick, readText, soundEnabled, setSoundEnabled（来自 js/sound.js））
+// playClick, readText, soundEnabled, setSoundEnabled, stopSpeaking（来自 js/sound.js）
 //
 // 交互流程：顶栏「元素周期表」→ 点选元素 → 介绍 + 3D 原子
 //           → 信息面板「相关物质」→ 化合物介绍 + 3D 结构 → 可返回元素
@@ -144,7 +144,7 @@ const infoDesc = document.getElementById('infoDesc');
 const infoLegend = document.getElementById('infoLegend');
 const infoSubstances = document.getElementById('infoSubstances');
 const infoSubLabel = document.getElementById('infoSubLabel');
-const infoBack = document.getElementById('infoBack');
+const navBackBtn = document.getElementById('navBackBtn'); // 顶栏「← 返回」（有浏览历史时显示）
 
 const SUP_DIGITS = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹'];
 function toSup(exp) {
@@ -217,7 +217,6 @@ function updateInfoElement(el) {
     infoLegend.innerHTML = '';
     infoSubLabel.style.display = 'none';
     infoSubstances.innerHTML = '';
-    infoBack.classList.add('hidden');
     updatePeriodicHighlight(-1);
     return;
   }
@@ -274,7 +273,6 @@ function updateInfoElement(el) {
       infoSubstances.appendChild(chip);
     });
   }
-  infoBack.classList.add('hidden');
   updatePeriodicHighlight(el.fake ? -1 : el.number);
 }
 
@@ -311,21 +309,16 @@ function updateInfoSubstance(sub) {
 
   infoSubLabel.style.display = 'none';
   infoSubstances.innerHTML = '';
-  if (currentElement && sub.composition.indexOf(currentElement.symbol) >= 0) {
-    infoBack.textContent = '← 返回 ' + currentElement.name + '（' + currentElement.symbol + '）';
-    infoBack.classList.remove('hidden');
-  } else {
-    infoBack.classList.add('hidden');
-  }
   updatePeriodicHighlight(-1);
 }
 
 // ---------- 选中元素 / 物质 ----------
-function selectElement(el) {
+function selectElement(el, skipNav) {
   if (!el) return;
   // 选中确认音：周期表格子、输入框跳转、相关物质 chip、「返回元素」
   // 全都汇聚到这两个函数，这里是音效的唯一挂点（启动自动加载时
   // sound.js 的手势门控会自动跳过，不会误响）。
+  if (!skipNav) navPush(el); // 浏览历史：skipNav 用于非用户跳转（启动/回显），不入栈
   playClick('pick');
   updateInfoElement(el);
   swapModel(el);
@@ -333,13 +326,97 @@ function selectElement(el) {
 
 function showSubstance(sub) {
   playClick('pick');
+  navPush(sub); // 浏览历史（相关物质 chip 点击后入栈，供返回键回退）
   updateInfoSubstance(sub);
   swapModel(sub);
 }
 
-infoBack.addEventListener('click', function () {
-  if (currentElement) selectElement(currentElement);
+navBackBtn.addEventListener('click', function () {
+  // 顶栏「← 返回」与系统返回键同一语义：回退一层浏览历史
+  playClick('pick');
+  webNavigateBack();
 });
+
+// ---------- 浏览历史栈（系统返回键按浏览顺序分层退回） ----------
+// 产品需求（2026-09）：按手机系统返回键时，按"周期表（根）→元素→物质"的
+// 浏览顺序逐层回退；退到元素周期表后再按返回键，才真正离开网页
+// （AllInOne 里回到首页）。实现：
+// - navStack 只记录元素/物质/中子/假想元素等内容视图（周期表是"根"不入栈）；
+// - 【App 怎么知道"该回退还是该退出"】网页每次开合周期表/进出视图，都把当前
+//   是否处在根写进 plus.storage（键 BACK_STATE_KEY：'1'=已在根、'0'=还有历史）。
+//   壳页面的 onBackPress 是同步执行的、拿不到 evalJS 的返回值，所以必须用这种
+//   "网页随时写、壳页面随时读"的共享存储，由壳页面来决定走哪条路。
+//   （2026-09-24 之前是"返回键按下时网页再打标记/发消息"的异步协议，链路一断
+//    返回键就被壳页面整个吞掉——三合一里出现过按返回键完全回不到首页的情况。）
+// - 回退恢复视图直接 swapModel（信息面板/高亮/入场动画/朗读一次到位），
+//   不要走 selectElement/showSubstance，避免再次入栈和重复的动作音。
+const BACK_STATE_KEY = 'labcraft_back_root'; // 与壳页面（uniapp/pages/index/index.vue）约定的状态键
+// 状态序号键：每次写状态自增 1。壳页面 evalJS 通知网页回退是"单向广播"，
+// 它拿不到执行结果，只能对比两次按键之间这个序号有没有变化，来判断网页侧
+// 回退是否真的执行了（序号不变 = 网页侧失灵 → 壳页面放行退出，绝不困住用户）。
+const BACK_SEQ_KEY = 'labcraft_back_seq'; // 与壳页面约定的序号键，两边字面量必须一致
+let navStack = [];
+let navLast = null; // 最近展示的对象：连续浏览同一内容时不重复入栈
+
+// "根" = 周期表打开且没有任何浏览历史。此时按返回键应离开网页回上一页；
+// 其余情况（在看某个元素/物质，或周期表收起后落在内容上）都还能在网页内回退。
+function isNavRoot() {
+  return ptModal.classList.contains('open') && navStack.length === 0;
+}
+
+// 把"当前是否在根"写进 plus.storage 供壳页面同步读取。
+// 浏览器里没有 plus.storage（本就不存在 App 的返回键联动），跳过即可。
+function writeBackState() {
+  try {
+    if (window.plus && plus.storage) {
+      plus.storage.setItem(BACK_STATE_KEY, isNavRoot() ? '1' : '0');
+      // 同步自增序号（见 BACK_SEQ_KEY 处的说明），壳页面靠它验证网页侧是否存活
+      var seq = parseInt(plus.storage.getItem(BACK_SEQ_KEY)) || 0;
+      plus.storage.setItem(BACK_SEQ_KEY, String(seq + 1));
+    }
+  } catch (e) { /* 存储不可用时网页照常运行，最多失去分层回退 */ }
+}
+
+// 顶栏「← 返回」按钮：浏览历史非空（已进入元素/物质等内容视图）时才显示；
+// 空态/周期表根状态下隐藏（没有内容可回退，返回键语义=退出，按钮无意义）
+function syncNavBack() {
+  navBackBtn.hidden = navStack.length === 0;
+}
+
+function navPush(data) {
+  if (!data || navLast === data) return;
+  navLast = data;
+  navStack.push(data);
+  syncNavBack(); // 有历史了 → 显示「返回」
+  writeBackState(); // 离开"根" → 同步给 App
+}
+
+function webNavigateBack() {
+  if (ptModal.classList.contains('open')) {
+    // 周期表打开时：堆栈还有内容 → 收起弹窗回到刚才的内容；
+    // 已是"根"（首屏周期表且没浏览过内容）→ 什么都不做，退出由 App 壳页面负责
+    // （它读到 '1' 就知道该关掉本页了）
+    if (navStack.length > 0) closePeriodic();
+    else writeBackState();
+    return;
+  }
+  // 弹出栈顶（就是当前展示的视图，可能是元素/物质/中子/假想），
+  // 然后展示"新的栈顶"：这才是历史意义的"上一层"。
+  // 陷阱：曾用 swapModel(被弹出的那项)，结果按返回键第一下原地重放当前页，
+  // 按两次才真正回退一层（此前浏览器实测抓到的 off-by-one）。
+  navStack.pop();
+  const prev = navStack.length ? navStack[navStack.length - 1] : null;
+  if (prev) {
+    navLast = prev;
+    swapModel(prev);
+  } else {
+    navLast = null;
+    openPeriodic(); // 栈空且没开周期表 → 回到根（元素周期表）
+  }
+  syncNavBack(); // 「返回」随历史栈内容显隐
+  writeBackState(); // 可能已回到根，同步给 App
+}
+window.__webSystemBack = webNavigateBack;
 
 // ---------- 声音开关 + 重读按钮 ----------
 // 声音总开关（js/sound.js 提供状态，持久化在 localStorage）：
@@ -382,7 +459,7 @@ resetViewBtn.addEventListener('click', function () {
 const ptModal = document.getElementById('ptModal');
 const ptGrid = document.getElementById('ptGrid');
 const ptLegend = document.getElementById('ptLegend');
-const ptClose = document.getElementById('ptClose');
+// ptClose 已删除（2026-09 按需求去掉周期表的 ✕ 关闭按钮）
 const ptBackdrop = document.getElementById('ptBackdrop');
 
 buildPeriodicTable(ptGrid, function (el) {
@@ -392,20 +469,26 @@ buildPeriodicTable(ptGrid, function (el) {
 buildPtLegend(ptLegend);
 
 function openPeriodic() {
+  // 打开周期表时立即停掉正在读的界面介绍，避免旧内容继续读
+  stopSpeaking();
   playClick('pop');
   ptModal.classList.add('open');
+  writeBackState(); // 周期表打开 → 多半回到"根"，同步给 App 判断返回键该不该关页
 }
 function closePeriodic() {
-  // 关闭音不放在这里：点格子选元素时 onPick 会先响"pick"选中音、
-  // 再调 closePeriodic——若此处也响一声会叠加成"哒哒"两声。
-  // 关闭音由 X 按钮 / 遮罩 / Esc 各自触发。
+  // 注意：这里不能 stopSpeaking()！点格子选元素时 onPick 会先
+  // selectElement（已经安排新朗读）再调 closePeriodic，若在此停读
+  // 会把刚刚安排的新元素朗读一并掐掉。停读只放在主动关闭的
+  // 触发处（遮罩/Esc）和 openPeriodic 里。
+  // 关闭音同样不放在这里（会与选中音叠加成"哒哒"），由各触发点负责。
   ptModal.classList.remove('open');
+  writeBackState(); // 周期表收起 → 不再是纯"根"状态，返回键应回退内容而非关页
 }
 document.getElementById('periodicBtn').addEventListener('click', openPeriodic);
-ptClose.addEventListener('click', function () { playClick('pop'); closePeriodic(); });
-ptBackdrop.addEventListener('click', function () { playClick('pop'); closePeriodic(); });
+// ✕ 已去掉（2026-09 需求），周期表退出口 = 点选元素 / 点遮罩 / Esc / 系统返回键
+ptBackdrop.addEventListener('click', function () { stopSpeaking(); playClick('pop'); closePeriodic(); });
 window.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape') { playClick('pop'); closePeriodic(); }
+  if (e.key === 'Escape') { stopSpeaking(); playClick('pop'); closePeriodic(); }
 });
 
 // ---------- 自定义元素输入 ----------
@@ -489,6 +572,7 @@ function fakeDesc() {
 
 function showCustomAtom(Z) {
   if (Z === 0n) { // 0 号：中子（只有一颗中子的"原子"）
+    navPush(NEUTRON_DATA); // 浏览历史：返回键可从"中子"退回上一屏
     setModel(buildNeutron(), NEUTRON_DATA);
     return;
   }
@@ -506,6 +590,7 @@ function showCustomAtom(Z) {
       shellCount: info.shellCount, outerElectrons: info.outerElectrons,
       shells: [], category: '假想元素', catKey: 'fake', desc: fakeDesc(),
     };
+    navPush(data); // 浏览历史（假想元素也可返回）
     setModel(buildRepresentativeAtom(rings, 1.0), data);
   } else {
     const zNum = Number(Z);
@@ -517,6 +602,7 @@ function showCustomAtom(Z) {
       category: '假想元素', catKey: 'fake', desc: fakeDesc(),
       config: '按 2n² 规律外推', period: '—', group: '—',
     };
+    navPush(data); // 浏览历史（假想元素也可返回）
     setModel(buildAtom({ number: zNum, mass: Number(mass), shells }), data);
   }
 }
@@ -639,14 +725,39 @@ function applyStatusbarInset() {
     }
   } catch (e) { /* 取不到就保持 env() 回退，不影响功能 */ }
 }
+// plus 可能比本脚本晚注入（Web 容器差异）：两条路都写一次返回状态，
+// 保证 App 壳页面读到的 BACK_STATE_KEY 一定是最新的
 if (window.plus) {
   applyStatusbarInset();
+  writeBackState();
 } else {
   document.addEventListener('plusready', applyStatusbarInset, false);
+  document.addEventListener('plusready', writeBackState, false);
+}
+
+// 信息面板"空状态"：任何元素/物质都未选中时的初始占位。
+// 首屏就是周期表，3D 场景留空；用户点选后 updateInfo 会整体覆盖这些内容，
+// 各字段的空态只与占位文案相关，不参与后续逻辑。
+function resetInfoPanel() {
+  currentElement = null;
+  currentSubstance = null;
+  infoTitle.textContent = '从元素周期表开始探索';
+  infoSub.innerHTML = '';
+  infoMeta.textContent = '点击周期表中的任意元素，查看介绍与 3D 原子结构；' +
+    '也可以在上方输入框输入原子序数（输入 0 为自由中子）快速跳转';
+  infoDesc.textContent = '';
+  infoLegend.innerHTML = '';
+  infoSubLabel.style.display = 'none';
+  infoSubstances.innerHTML = '';
+  updatePeriodicHighlight(-1);
 }
 
 // ---------- 启动 ----------
 resize();
-selectElement(ELEMENTS[0]); // 背景先摆一个氢原子
-openPeriodic();             // 首屏直接打开周期表，引导选择
+// 【首屏=元素周期表】不加载氢原子：3D 场景保持"未选择"空状态，
+// 页面以全屏周期表作为起始界面；用户点选元素后才出现 3D 模型。
+// （原先启动默认摆氢，关闭周期表后首屏停在氢元素上，与需求不符）
+resetInfoPanel(); // 空状态占位（选中元素后 updateInfo 覆盖为真实内容）
+syncNavBack();    // 刚启动：没有任何浏览历史，「返回」按钮保持隐藏
+openPeriodic();   // 首屏显示元素周期表
 animate();

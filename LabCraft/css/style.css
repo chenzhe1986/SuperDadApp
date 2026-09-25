@@ -219,14 +219,14 @@ body {
 }
 
 .sub-chip:hover { transform: translateY(-1px); filter: brightness(1.25); }
+.sub-chip:hover { transform: translateY(-1px); filter: brightness(1.25); }
 .sub-chip b { font-size: 12.5px; font-weight: 600; }
 .sub-chip i { font-size: 10.5px; font-style: normal; color: var(--muted); }
 
-.info-back {
-  margin-top: 12px; width: 100%; justify-content: center;
-  border-color: rgba(124, 140, 255, 0.5);
-}
-.info-back.hidden { display: none; }
+/* 顶栏「← 返回」按钮：与其它 .btn 同风格；[hidden] 要显式覆盖，
+   （.btn 的 inline-flex 会压过浏览器默认的 hidden 规则） */
+.nav-back { padding: 8px 12px; }
+.nav-back[hidden] { display: none; }
 
 /* ---------- 声音开关与重读按钮 ---------- */
 /* 顶栏声音总开关：正常显示喇叭波纹图标，静音（.muted）时切换成叉号图标 */
@@ -321,13 +321,6 @@ body {
 .pt-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .pt-title h2 { font-size: 19px; font-weight: 700; margin-bottom: 2px; }
 .pt-title span { font-size: 12px; color: var(--muted); }
-
-.pt-close {
-  width: 34px; height: 34px; border-radius: 50%;
-  border: 1px solid var(--border); background: rgba(120, 140, 200, 0.1);
-  color: var(--text); font-size: 15px; cursor: pointer; transition: all 0.16s ease;
-}
-.pt-close:hover { background: rgba(255, 90, 90, 0.18); border-color: rgba(255, 90, 90, 0.5); }
 
 .pt-scroll {
   /* 只允许上下滚动：18 列宽度由流体网格精确贴合面板，不再需要左右拖动 */
